@@ -74,7 +74,7 @@ embeds <- embeds %>% rename(tSNE_1 = V2, tSNE_2 = V3)
 embeds <- data.matrix(embeds)
 pbmc[["tsne"]]@cell.embeddings <- embeds
 highlight <- WhichCells(pbmc, idents=c("NK cell"))
-# Supplementary Figure 1D
+# Supplementary Figure 2D
 DimPlot(pbmc, cells.highlight= highlight, cols.highlight = c("grey60"), cols= "lightgrey", sizes.highlight = 0.3)
 # Subset unstimulated NK cells at day 0
 nk_control <- subset(pbmc, idents=c('NK cell'))
@@ -154,7 +154,7 @@ oncotice.markers <- FindAllMarkers(oncotice, only.pos = TRUE, min.pct = 0.25, lo
 oncotice.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_log2FC) -> top10
 DoHeatmap(oncotice, features = top10$gene, group.colors = col_vector, size = 2, group.bar.height = 0.01) + NoLegend() + scale_fill_gradientn(colors = c('white',"white", "#D33682"))
 
-# Supplementary Figure 1E
+# Supplementary Figure 2E
 nk.merged.markers <- FindAllMarkers(nk.merged, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 nk.merged.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_log2FC) -> top10
 DoHeatmap(nk.merged, features = top10$gene, group.colors = c('#457b9d', '#ffb942', '#e63946', 'gray40', 'gray60', 'gray80'), size = 2, group.bar.height = 0.01) + NoLegend() + scale_fill_gradientn(colors = c('white',"white", "#D33682"))

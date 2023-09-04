@@ -6,6 +6,7 @@ library(Seurat)
 library(viridis)
 library(RColorBrewer)
 library(sceasy)
+library(escape)
 library(openxlsx)
 
 # Load 'Esteso et al' BCG Seurat R file and subset Oncotice-treated cells (GSE203098)
@@ -149,6 +150,14 @@ adata =sc.read_h5ad("nk_input.h5ad")
 markers={ 'CYTOTOXICITY': ['GZMA', 'GZMB', 'GZMK', 'PRF1'], 'INHIBITORY RECEPTORS': ['LAIR1', 'KLRC1', 'TNFSF10', 'FASLG'], 'ACTIVATING RECEPTORS': ['FCGR3A', 'FCER1G', 'KLRC2', 'KLRK1'], 'CYTOKINES AND CHEMOKINES': ['IFNG', 'LTB', 'CCL3', 'XCL2'], 'CHEMOKINE AND CYTOKINE RECEPTORS': ['IL21R', 'CXCR3', 'CXCR4', 'CCR7'],  'ADHESION MOLECULES': ['ITGAL', 'CD58', 'SELL', 'CD96'], }
 sc.pl.stacked_violin(adata, markers, 'cluster', dendrogram=False, save='.pdf')
 
+# FIGURE 1J
+convertFormat(nk.merged, from="seurat", to="anndata", outFile='nk_input.h5ad')
+# Python in Spyder in Anaconda
+import scanpy as sc
+adata =sc.read_h5ad("nk_input.h5ad")
+markers={ 'IL2': ['JAK3', 'STAT5A', 'IL2RA', 'SYK', 'PTK2B'], 'IL12': ['RALA', 'IL12RB2', 'IFNG', 'TCP1', 'SOD2'], 'IL15': ['STAT5', 'GRB2', 'IL2RB', 'IL2RG', 'IL15RA'], 'IL18': ['IL18R1', 'IL18RAP', 'IL18'], 'IL21': ['IL21R', 'STAT1', 'IL21'],  'STING': ['CGAS', 'DDX41', 'XRCC5', 'PRKDC', 'TMEM173'], }
+sc.pl.dotplot(adata, markers, 'number', dendrogram=False, cmap='seismic', standard_scale='var', save='.pdf')
+
 # Supplementary Figure 1B
 oncotice.markers <- FindAllMarkers(oncotice, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 oncotice.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_log2FC) -> top10
@@ -158,3 +167,12 @@ DoHeatmap(oncotice, features = top10$gene, group.colors = col_vector, size = 2, 
 nk.merged.markers <- FindAllMarkers(nk.merged, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 nk.merged.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_log2FC) -> top10
 DoHeatmap(nk.merged, features = top10$gene, group.colors = c('#457b9d', '#ffb942', '#e63946', 'gray40', 'gray60', 'gray80'), size = 2, group.bar.height = 0.01) + NoLegend() + scale_fill_gradientn(colors = c('white',"white", "#D33682"))
+
+# Supplementary Figure 1F
+gene.sets <- getGeneSets(library = "C2", gene.sets = 'REACTOME_INTERLEUKIN_2_SIGNALING')
+ES <- enrichIt(obj = nk.merged, gene.sets = gene.sets)
+nk.merged <- AddMetaData(nk.merged, ES)
+ES2 <- data.frame(nk.merged[[]], Idents(nk.merged))
+colnames(ES2)[ncol(ES2)] <- "number"
+ES2 <- ES2[,27:54]
+ridgeEnrichment(ES2, gene.set = "REACTOME_INTERLEUKIN_2_SIGNALING", group = "number", add.rug = TRUE)

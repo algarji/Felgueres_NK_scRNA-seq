@@ -16,14 +16,14 @@ oncotice <- subset(bcg, idents=c('Oncotice'))
 n <- 36
 qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
 col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
-# FIGURE 1D
+# FIGURE 2A
 DimPlot(oncotice, label=TRUE, cols=col_vector)
 # Subset oncotice-treated nk cells
 Idents(oncotice) <- 'annotation'
 new.cluster.ids <- c("Rest", "Rest", "Rest", "NK cell", "Rest", "Rest", "Rest", "Rest", "Rest", "Rest", "Rest", "Rest", "Rest", "Rest")
 names(new.cluster.ids) <- levels(oncotice)
 oncotice <- RenameIdents(oncotice, new.cluster.ids)
-# FIGURE 1E
+# FIGURE 2B
 VlnPlot(oncotice, features=c('TYROBP', 'NCAM1', 'CD3D'), cols=c('gray40','#FFFF99'))
 # Clustering and annotation
 nk <- subset(oncotice, idents=c('NK cell'))
@@ -75,7 +75,7 @@ embeds <- embeds %>% rename(tSNE_1 = V2, tSNE_2 = V3)
 embeds <- data.matrix(embeds)
 pbmc[["tsne"]]@cell.embeddings <- embeds
 highlight <- WhichCells(pbmc, idents=c("NK cell"))
-# Supplementary Figure 1D
+# Supplementary Figure 2B
 DimPlot(pbmc, cells.highlight= highlight, cols.highlight = c("grey60"), cols= "lightgrey", sizes.highlight = 0.3)
 # Subset unstimulated NK cells at day 0
 nk_control <- subset(pbmc, idents=c('NK cell'))
@@ -120,13 +120,13 @@ Idents(nk.merged) <- factor(Idents(nk.merged), levels= my_levels)
 cluster <- Idents(nk.merged)
 cluster <- unname(cluster)
 nk.merged@meta.data$cluster = cluster
-# FIGURE 1F
+# FIGURE 2C
 DimPlot(nk.merged, cols=c('#457b9d', '#ffb942', '#e63946', 'gray40', 'gray60', 'gray80'))
 
-# FIGURE 1G 
+# FIGURE 2D
 DoHeatmap(nk, features = c('CCL5', 'NKG7', 'TYROBP', 'KLRB1', 'CST7', 'MKI67', 'TOP2A', 'RASGRP2', 'KLF2', 'IGFBP7', 'HSP90AB1', 'FABP5', 'BATF3', 'ZBED2', 'TNFRSF4'), size = 2, group.bar.height = 0.02, group.colors = c('#457b9d', '#ffb942', '#e63946')) + NoLegend() + scale_fill_gradientn(colors = c('white',"white", "black"))
 
-# FIGURE 1H
+# FIGURE 2E
 cluster1.markers <- FindMarkers(nk, ident.1 = 1, min.pct = 0.25)
 cluster1 <- filter(cluster1.markers, avg_log2FC > 0.58 & p_val_adj < 0.05)
 cluster2.markers <- FindMarkers(nk, ident.1 = 2, min.pct = 0.25)
@@ -142,7 +142,7 @@ GO_dotplot$GeneRatio[GO_dotplot$GeneRatio == 0] <- NA
 GO_dotplot$logp.adjust[GO_dotplot$logp.adjust == 0] <- NA
 ggplot(data = GO_dotplot, aes(x = Cluster, y = GO)) + geom_point(aes(fill=-(GeneRatio), size=-(logp.adjust)), colour="black", shape=21, stroke=0.5) + theme_bw() + ylab("") + xlab("Clusters") + ggtitle("GO enrichment analysis") + scale_fill_continuous(high = "#132B43", low = "#56B1F7", limits = c(-20, 0)) 
 
-# FIGURE 1I
+# FIGURE 2F
 convertFormat(nk.merged, from="seurat", to="anndata", outFile='nk_input.h5ad')
 # Python in Spyder in Anaconda
 import scanpy as sc
@@ -150,7 +150,7 @@ adata =sc.read_h5ad("nk_input.h5ad")
 markers={ 'CYTOTOXICITY': ['GZMA', 'GZMB', 'GZMK', 'PRF1'], 'INHIBITORY RECEPTORS': ['LAIR1', 'KLRC1', 'TNFSF10', 'FASLG'], 'ACTIVATING RECEPTORS': ['FCGR3A', 'FCER1G', 'KLRC2', 'KLRK1'], 'CYTOKINES AND CHEMOKINES': ['IFNG', 'LTB', 'CCL3', 'XCL2'], 'CHEMOKINE AND CYTOKINE RECEPTORS': ['IL21R', 'CXCR3', 'CXCR4', 'CCR7'],  'ADHESION MOLECULES': ['ITGAL', 'CD58', 'SELL', 'CD96'], }
 sc.pl.stacked_violin(adata, markers, 'cluster', dendrogram=False, save='.pdf')
 
-# FIGURE 1J
+# FIGURE 2G
 convertFormat(nk.merged, from="seurat", to="anndata", outFile='nk_input.h5ad')
 # Python in Spyder in Anaconda
 import scanpy as sc
@@ -163,12 +163,12 @@ oncotice.markers <- FindAllMarkers(oncotice, only.pos = TRUE, min.pct = 0.25, lo
 oncotice.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_log2FC) -> top10
 DoHeatmap(oncotice, features = top10$gene, group.colors = col_vector, size = 2, group.bar.height = 0.01) + NoLegend() + scale_fill_gradientn(colors = c('white',"white", "#D33682"))
 
-# Supplementary Figure 1E
+# Supplementary Figure 2C
 nk.merged.markers <- FindAllMarkers(nk.merged, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 nk.merged.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_log2FC) -> top10
 DoHeatmap(nk.merged, features = top10$gene, group.colors = c('#457b9d', '#ffb942', '#e63946', 'gray40', 'gray60', 'gray80'), size = 2, group.bar.height = 0.01) + NoLegend() + scale_fill_gradientn(colors = c('white',"white", "#D33682"))
 
-# Supplementary Figure 1F
+# Supplementary Figure 2D
 gene.sets <- getGeneSets(library = "C2", gene.sets = 'REACTOME_INTERLEUKIN_2_SIGNALING')
 ES <- enrichIt(obj = nk.merged, gene.sets = gene.sets)
 nk.merged <- AddMetaData(nk.merged, ES)
